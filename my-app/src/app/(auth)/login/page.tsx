@@ -1,7 +1,9 @@
 "use client";
 
 import { login } from "@/src/services/authService";
+import Cookies from "js-cookie";
 import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -11,6 +13,8 @@ type FormData = {
 };
 
 const Page = () => {
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -24,7 +28,16 @@ const Page = () => {
   const onSubmit = async (data: FormData) => {
     try {
       const response = await login(data);
-      console.log(response);
+
+      const token = response.token;
+
+      Cookies.set("token", token, {
+        expires: 7, // days
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict", // CSRF protection
+      });
+
+      router.replace("/dashboard");
     } catch (error) {
       console.error(error);
     }
