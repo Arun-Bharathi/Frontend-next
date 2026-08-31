@@ -5,7 +5,10 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
   const { pathname } = request.nextUrl;
 
-  if (!token && (pathname === "/" || pathname.startsWith("/dashboard"))) {
+  const isProtectedRoute =
+    pathname.startsWith("/dashboard") || pathname.startsWith("/users");
+
+  if (!token && (pathname === "/" || isProtectedRoute)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -17,5 +20,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/login", "/dashboard/:path*"],
+  matcher: ["/", "/login", "/dashboard/:path*", "/users/:path*"],
 };
