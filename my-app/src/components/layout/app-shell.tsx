@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { ToastContainer } from "react-toastify";
 import { useState } from "react";
 
 const navigation = [
@@ -161,6 +162,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
         <main className="p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
+
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }
