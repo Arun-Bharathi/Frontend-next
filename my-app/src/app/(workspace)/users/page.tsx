@@ -1,4 +1,6 @@
-import { Search, UserPlus } from "lucide-react";
+import { Search } from "lucide-react";
+import AddUserDialog from "../../../components/users/add-user-dialog";
+import UserActions from "../../../components/users/user-actions";
 
 const users = [
   {
@@ -29,7 +31,6 @@ export default function UsersPage() {
     <div className="mx-auto max-w-7xl space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          {/* <p className="text-sm font-semibold text-emerald-600">MANAGEMENT</p> */}
           <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
             Users
           </h2>
@@ -37,9 +38,7 @@ export default function UsersPage() {
             Manage team members and account access.
           </p>
         </div>
-        <button className="flex w-fit items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800">
-          <UserPlus size={18} /> Add user
-        </button>
+        <AddUserDialog />
       </div>
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -95,9 +94,10 @@ export default function UsersPage() {
                     </span>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <button className="font-semibold text-emerald-700 hover:text-emerald-900">
-                      Edit
-                    </button>
+                    <UserActions
+                      userName={user.name}
+                      userEmail={user.email}
+                    />
                   </td>
                 </tr>
               ))}
