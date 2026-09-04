@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef } from "react";
-import { UserPlus, X } from "lucide-react";
+import { useState } from "react";
+import { UserPlus } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { z } from "zod";
 import { createUser } from "@/src/services/userService";
 import { toast } from "react-toastify";
+import CustomResponsiveModal from "../common/custom-responsive-modal";
 
 const addUserSchema = z.object({
   first_name: z.string().trim().min(1, "First name is required"),
@@ -33,12 +34,12 @@ const inputClassName =
   "mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-400 focus:ring-3 focus:ring-emerald-100";
 
 export default function AddUserDialog() {
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors,isSubmitting  },
+    formState: { errors, isSubmitting },
   } = useForm<AddUserFormValues>({
     resolver: zodResolver(addUserSchema),
     defaultValues: {
@@ -52,18 +53,20 @@ export default function AddUserDialog() {
   });
 
   const openDialog = () => {
-    dialogRef.current?.showModal();
+    setIsOpen(true);
   };
 
   const closeDialog = () => {
     reset();
-    dialogRef.current?.close();
+    setIsOpen(false);
   };
 
   const submitUser: SubmitHandler<AddUserFormValues> = async (values) => {
     try {
       const response = await createUser(values);
       console.log(response);
+      reset();
+      setIsOpen(false);
       toast.success("User created successfully");
     } catch (error) {
       console.log(error);
@@ -80,40 +83,38 @@ export default function AddUserDialog() {
         <UserPlus size={18} /> Add user
       </button>
 
-      <dialog
-        ref={dialogRef}
-        aria-labelledby="add-user-title"
-        onClose={() => reset()}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) closeDialog();
-        }}
-        className="m-auto w-[calc(100%-2rem)] max-w-2xl rounded-2xl bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/55"
-      >
-        <form
-          onSubmit={handleSubmit(submitUser)}
-          noValidate
-          className="overflow-hidden"
-        >
-          <div className="flex items-start justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
-            <div>
-              <h3 id="add-user-title" className="text-xl font-bold">
-                Add user
-              </h3>
-              <p className="mt-1 text-sm text-slate-500">
-                Enter the new user&apos;s details and account access.
-              </p>
-            </div>
+      <CustomResponsiveModal
+        isOpen={isOpen}
+        onClose={closeDialog}
+        title="Add user"
+        description="Enter the new user's details and account access."
+        size="lg"
+        footer={
+          <>
             <button
               type="button"
               onClick={closeDialog}
-              aria-label="Close add user dialog"
-              className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-emerald-200"
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-slate-200"
             >
-              <X size={20} />
+              Cancel
             </button>
-          </div>
-
-          <div className="grid gap-5 px-5 py-6 sm:grid-cols-2 sm:px-6">
+            <button
+              type="submit"
+              form="add-user-form"
+              disabled={isSubmitting}
+              className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSubmitting ? "Saving..." : "Save"}
+            </button>
+          </>
+        }
+      >
+        <form
+          id="add-user-form"
+          onSubmit={handleSubmit(submitUser)}
+          noValidate
+          className="grid gap-5 sm:grid-cols-2"
+        >
             <label className="text-sm font-semibold text-slate-700">
               First name
               <input
@@ -220,25 +221,8 @@ export default function AddUserDialog() {
                 </span>
               )}
             </label>
-          </div>
-
-          <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:px-6">
-            <button
-              type="button"
-              onClick={closeDialog}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-slate-200"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit" disabled={isSubmitting}
-              className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-emerald-200"
-            >
-              {isSubmitting ? "Saving..." : "Save"}
-            </button>
-          </div>
         </form>
-      </dialog>
+      </CustomResponsiveModal>
     </>
   );
 }

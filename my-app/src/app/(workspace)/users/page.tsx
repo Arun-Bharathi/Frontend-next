@@ -1,32 +1,42 @@
+"use client";
 import { Search } from "lucide-react";
 import AddUserDialog from "../../../components/users/add-user-dialog";
 import UserActions from "../../../components/users/user-actions";
+import { useEffect, useState } from "react";
+import { getAllUser } from "@/src/services/userService";
 
-const users = [
-  {
-    name: "Ava Morgan",
-    email: "ava@example.com",
-    role: "Administrator",
-    status: "Active",
-    initials: "AM",
-  },
-  {
-    name: "Noah Williams",
-    email: "noah@example.com",
-    role: "Editor",
-    status: "Active",
-    initials: "NW",
-  },
-  {
-    name: "Mia Taylor",
-    email: "mia@example.com",
-    role: "Viewer",
-    status: "Inactive",
-    initials: "MT",
-  },
-];
+type User = {
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  status: string;
+};
 
 export default function UsersPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [input, setInput] = useState("");
+  console.log(input);
+  
+
+  useEffect(() => {
+    let ignore = false;
+
+    getAllUser()
+      .then((response) => {
+        if (!ignore) {
+          setUsers(Array.isArray(response?.data) ? response.data : []);
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("Failed to load users", error);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [input]);
+
   return (
     <div className="mx-auto max-w-7xl space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -51,6 +61,8 @@ export default function UsersPage() {
             />
             <input
               type="search"
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
               placeholder="Search users..."
               className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-emerald-400 focus:ring-3 focus:ring-emerald-100"
             />
@@ -73,11 +85,11 @@ export default function UsersPage() {
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <span className="grid size-10 place-items-center rounded-full bg-emerald-100 font-bold text-emerald-700">
-                        {user.initials}
+                        A
                       </span>
                       <span>
                         <span className="block font-semibold text-slate-800">
-                          {user.name}
+                          {user.first_name} {user.last_name}
                         </span>
                         <span className="block text-xs text-slate-500">
                           {user.email}
@@ -95,7 +107,7 @@ export default function UsersPage() {
                   </td>
                   <td className="px-5 py-4 text-right">
                     <UserActions
-                      userName={user.name}
+                      userName={user.first_name}
                       userEmail={user.email}
                     />
                   </td>
