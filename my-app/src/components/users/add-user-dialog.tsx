@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UserPlus } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, type SubmitHandler } from "react-hook-form";
+import {
+  useForm,
+  type DefaultValues,
+  type SubmitHandler,
+} from "react-hook-form";
 import { z } from "zod";
-import { createUser } from "@/src/services/userService";
+import { createUser, updateUser } from "@/src/services/userService";
 import { toast } from "react-toastify";
 import CustomResponsiveModal from "../common/custom-responsive-modal";
 
@@ -30,10 +34,29 @@ const addUserSchema = z.object({
 
 type AddUserFormValues = z.infer<typeof addUserSchema>;
 
+const emptyUserValues = {
+  first_name: "",
+  last_name: "",
+  mobile_number: "",
+  email: "",
+  role: undefined,
+  status: "active",
+} satisfies DefaultValues<AddUserFormValues>;
+
 const inputClassName =
   "mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-400 focus:ring-3 focus:ring-emerald-100";
 
-export default function AddUserDialog() {
+type AddUserDialogProps = {
+  onUserCreated?: () => void;
+  editUser?: (AddUserFormValues & { id: string }) | null;
+  onEditClose?: () => void;
+};
+
+export default function AddUserDialog({
+  onUserCreated,
+  editUser,
+  onEditClose,
+}: AddUserDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const {
     register,
@@ -42,32 +65,49 @@ export default function AddUserDialog() {
     formState: { errors, isSubmitting },
   } = useForm<AddUserFormValues>({
     resolver: zodResolver(addUserSchema),
-    defaultValues: {
-      first_name: "",
-      last_name: "",
-      mobile_number: "",
-      email: "",
-      role: undefined,
-      status: "active",
-    },
+    defaultValues: emptyUserValues,
   });
 
+  const isEditing = Boolean(editUser);
+
+  useEffect(() => {
+    if (!editUser) return;
+
+    reset({
+      first_name: editUser.first_name,
+      last_name: editUser.last_name,
+      mobile_number: editUser.mobile_number,
+      email: editUser.email,
+      role: editUser.role,
+      status: editUser.status,
+    });
+    setIsOpen(true);
+  }, [editUser, reset]);
+
   const openDialog = () => {
+    reset(emptyUserValues);
     setIsOpen(true);
   };
 
   const closeDialog = () => {
-    reset();
+    reset(emptyUserValues);
     setIsOpen(false);
+    onEditClose?.();
   };
 
   const submitUser: SubmitHandler<AddUserFormValues> = async (values) => {
     try {
-      const response = await createUser(values);
+      const response = editUser
+        ? await updateUser({ id: editUser.id, ...values })
+        : await createUser(values);
       console.log(response);
-      reset();
+      reset(emptyUserValues);
       setIsOpen(false);
-      toast.success("User created successfully");
+      onEditClose?.();
+      onUserCreated?.();
+      toast.success(
+        isEditing ? "User updated successfully" : "User created successfully",
+      );
     } catch (error) {
       console.log(error);
     }
@@ -86,8 +126,12 @@ export default function AddUserDialog() {
       <CustomResponsiveModal
         isOpen={isOpen}
         onClose={closeDialog}
-        title="Add user"
-        description="Enter the new user's details and account access."
+        title={isEditing ? "Edit user" : "Add user"}
+        description={
+          isEditing
+            ? "Update this user's details and account access."
+            : "Enter the new user's details and account access."
+        }
         size="lg"
         footer={
           <>
@@ -104,7 +148,13 @@ export default function AddUserDialog() {
               disabled={isSubmitting}
               className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? "Saving..." : "Save"}
+              {isSubmitting
+                ? isEditing
+                  ? "Updating..."
+                  : "Saving..."
+                : isEditing
+                  ? "Update user"
+                  : "Save"}
             </button>
           </>
         }

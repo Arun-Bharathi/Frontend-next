@@ -46,7 +46,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <span className="block text-sm font-bold tracking-wide text-white">
               My Admin
             </span>
-            <span className="block text-xs text-slate-500">Control center</span>
+            <span className="block text-xs text-slate-400">Control center</span>
           </span>
         </Link>
 
@@ -61,7 +61,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <nav className="flex-1 space-y-2 px-4 py-6" aria-label="Main navigation">
-        <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-600">
+        <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
           Menu
         </p>
         {navigation.map((item) => {
